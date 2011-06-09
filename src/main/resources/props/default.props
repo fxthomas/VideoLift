@@ -1,0 +1,5 @@
+# Default DB Driver
+db.driver=com.mysql.jdbc.Driver
+db.url=jdbc:mysql://localhost/videolift
+db.user=videolift
+db.password=vltestpw
