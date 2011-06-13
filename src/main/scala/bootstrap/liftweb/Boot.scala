@@ -39,9 +39,11 @@ class Boot {
     // you don't need to use Mapper to use Lift... use
     // any ORM you want
     Schemifier.schemify(true, Schemifier.infoF _, User)
+    Schemifier.schemify(true, Schemifier.infoF _, HypeMapper)
+    Schemifier.schemify(true, Schemifier.infoF _, HypeShow)
     Schemifier.schemify(true, Schemifier.infoF _, HypeFile)
     
-    HypeFile.updateFromDirectory ("/home/fx/Videos/")
+    HypeFile.update()
 
     // where to search snippet
     LiftRules.addToPackages("code")
@@ -49,12 +51,13 @@ class Boot {
 
     // Define SiteMap
     def sitemap(): SiteMap = SiteMap (
-      Menu.i ("VideoLift Project") / "index",
+      Menu.i ("VideoLift") / "index",
+      Menu.i ("Reload Data") / "reload",
       Menu.i ("Media") / "media" / **
     )
 
     // Tell Lift where to find the sitemap
-    LiftRules.setSiteMapFunc( () => sitemap())
+    LiftRules.setSiteMapFunc(() => sitemap())
 
     // Add AJAX spinner gifs
     LiftRules.ajaxStart = Full(() => LiftRules.jsArtifacts.show ("ajax-loader").cmd)
