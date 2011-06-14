@@ -47,10 +47,38 @@ a:hover {
   text-align: center;
 }
 
+.help {
+  display: block;
+  font-size: 1.3em;
+  margin: 10px;
+}
+
+.help:hover {
+  color: #f50;
+}
+
 #padded_content {
   display: table;
   margin: 20px auto;
   width: 1000px;
+}
+
+.help_text {
+  border-radius: 5px;
+  background-color: #1a1a1a;
+  padding: 15px;
+}
+
+.help_text h1 {
+  padding-top: 5px;
+}
+
+.help_text .example {
+  color: #f50;
+}
+
+.help_text .pad {
+  padding-left: 10px;
 }
 
 .series {

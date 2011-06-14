@@ -51,7 +51,7 @@ class Hype extends Logger {
   /**
    * Update variables based on request, and fetch info from DB
    */
-  def updateShow (s: String) = if (s != "") {
+  def updateShow (s: String) = {
     var req = s
 
     /*
@@ -90,17 +90,20 @@ class Hype extends Logger {
     req = Hype.SearchSeasonRE.replaceAllIn(req, m => m.group(1) + m.group(3))
     req = Hype.SearchEpisodeRE.replaceAllIn(req, m => m.group(1) + m.group(3))
     req = Hype.NewestRE.replaceAllIn (req, m => m.group(2))
+    req = req.replaceAll ("""[^a-zA-Z0-9]""", " ")
 
     /*
      * Fetch info from DB
      */
-    debug ("Searching show: " + req + (season match { case Full(s) => " / Season " + s; case _ => "" }) + (episode match { case Full(e) => " / Episode " + e; case _ => "" }))
-    shows = HypeShow.findAll (Like(HypeShow.title, "%" + (req replaceAll("""[. _\-]""", "%")) + "%"), OrderBy (HypeShow.title, Ascending))
-
-  /*
-   * If the request if empty, don't display anything
-   */
-  } else shows = List[HypeShow]()
+    if (req != "") {
+      debug ("Searching show: " + req + (season match { case Full(s) => " / Season " + s; case _ => "" }) + (episode match { case Full(e) => " / Episode " + e; case _ => "" }))
+      shows = HypeShow.findAll (Like(HypeShow.title, "%" + (req replaceAll(""" """, "%")) + "%"), OrderBy (HypeShow.title, Ascending))
+    }
+    /*
+     * If the request if empty, don't display anything
+     */
+    else shows = List[HypeShow]()
+  }
 
   /**
    * Render one episode

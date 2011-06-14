@@ -52,6 +52,7 @@ class Boot {
     // Define SiteMap
     def sitemap(): SiteMap = SiteMap (
       Menu.i ("VideoLift") / "index",
+      Menu.i ("VideoLift | Help") / "help",
       Menu.i ("Media") / "media" / **
     )
 
