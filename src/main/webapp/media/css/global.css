@@ -27,11 +27,24 @@ h1 {
   margin: 0;
 }
 
+a {
+  color: #50a;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #0a0;
+}
+
 #logo {
   margin: 0 auto;
   padding: 10px;
   display: block;
   height: 150px;
+}
+
+#credits {
+  text-align: center;
 }
 
 #padded_content {

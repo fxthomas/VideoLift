@@ -14,14 +14,43 @@ import net.liftweb.mapper.{Like, OrderBy, Ascending}
 
 import model.{HypeFile, HypeShow}
 
+object Hype {
+  val SearchEp1RE = """(.*?)[sS]([0-9]+)[eE]([0-9]+)(.*)""".r
+  val SearchEp2RE = """(.*?)([0-9]+)[xX]([0-9]+)(.*)""".r
+  val SearchSeasonRE = """(?i)(.*?)season ([0-9]+)(.*)""".r
+  val SearchEpisodeRE = """(?i)(.*?)episode ([0-9]+)(.*)""".r
+}
+
 class Hype extends Logger {
-  def searchShow (s: String) = if (s != "") {
-    debug ("Searching show: " + s)
-    HypeShow.findAll (Like(HypeShow.title, "%" + (s replaceAll("""[. _\-]""", "%")) + "%"), OrderBy (HypeShow.title, Ascending))
-  } else List[HypeShow]()
+  def updateShow (s: String) = if (s != "") {
+    var req = s
+    season = req match {
+      case Hype.SearchSeasonRE(_, sh, _)    => Full(sh toLong)
+      case Hype.SearchEp1RE   (_, sh, _, _) => Full(sh toLong)
+      case Hype.SearchEp2RE   (_, sh, _, _) => Full(sh toLong)
+      case _ => Empty
+    }
+    episode = req match {
+      case Hype.SearchEpisodeRE(_, e, _)    => Full(e toLong)
+      case Hype.SearchEp1RE    (_, _, e, _) => Full(e toLong)
+      case Hype.SearchEp2RE    (_, _, e, _) => Full(e toLong)
+      case _ => Empty
+    }
+
+    req = Hype.SearchEp1RE.replaceAllIn(req, m => m.group(1) + m.group(4))
+    req = Hype.SearchEp2RE.replaceAllIn(req, m => m.group(4) + m.group(4))
+    req = Hype.SearchSeasonRE.replaceAllIn(req, m => m.group(1) + m.group(3))
+    req = Hype.SearchEpisodeRE.replaceAllIn(req, m => m.group(1) + m.group(3))
+
+    debug ("Searching show: " + req + (season match { case Full(s) => " / Season " + s; case _ => "" }) + (episode match { case Full(e) => " / Episode " + e; case _ => "" }))
+
+    shows = HypeShow.findAll (Like(HypeShow.title, "%" + (req replaceAll("""[. _\-]""", "%")) + "%"), OrderBy (HypeShow.title, Ascending))
+  } else shows = List[HypeShow]()
 
   var search = ""
   var shows = List[HypeShow]()
+  var season: Box[Long] = Empty
+  var episode: Box[Long] = Empty
 
   /**
    * Render one episode
@@ -48,7 +77,15 @@ class Hype extends Logger {
         (if (show.tvdb_id != 0) (".showtitle [href]" #> ("http://thetvdb.com/?tab=series&id="+show.tvdb_id)) else ".showtitle [href]" #> "")
       ) & ".description *" #> show.description
     ) &
-    ".episodes *" #> (".episode *" #> show.files.map (renderEpisode))
+    ".episodes *" #> (".episode *" #> (show.files filter(ep => 
+      (episode match {
+        case Full(e) => e == ep.episode.is
+        case _ => true
+      }) && (season match {
+        case Full(s) => s == ep.season.is
+        case _ => true
+      })
+    ) map(renderEpisode)))
   }
 
   /**
@@ -60,12 +97,12 @@ class Hype extends Logger {
    * Render the Reload button
    */
   def renderReload = "*" #> SHtml.idMemoize (outer =>
-    "#reload [onclick]" #> SHtml.ajaxInvoke (() => { HypeFile.update(); shows = searchShow(search); SetHtml (outer.latestId, renderList(outer.applyAgain())) })
+    "#reload [onclick]" #> SHtml.ajaxInvoke (() => { HypeFile.update(); updateShow(search); SetHtml (outer.latestId, renderList(outer.applyAgain())) })
   )
 
   def process(outer: IdMemoizeTransform): () => JsCmd = {
     () => {
-      shows = searchShow (search);
+      updateShow(search);
       SetHtml (outer.latestId, render(outer.applyAgain()))
     }
   }
