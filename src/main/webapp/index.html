@@ -12,6 +12,11 @@
     <div id="main" class="lift:surround?with=default;at=content">
       <div id="padded_content">
         <div id="hype" class="lift:Hype">
+          <div id="search-outer">
+            <form id="search-form" class="lift:form.ajax">
+              <div id="show"><input name="show" /></div><div id="submit"><input type="submit" name="submit" value="Search" /></div>
+            </form>
+          </div>
           <div id="reload-outer" class="ajaxlink"><span class="ajax-outer"><div id="ajax-loader"></div></span> <span id="reload">Reload</span></div>
           <div class="series">
             <div class="text">
@@ -19,7 +24,7 @@
                 <div class="series-info">
                   <!-- Series Poster -->
                   <div class="series-picture picture">
-                    <img src="" /><div class="showtitle">Series Name</div>
+                    <img src="" /><a href="" class="showtitle">Series Name</a>
                   </div>
                   <!-- End Series Poster -->
                   <div class="description">Series Description</div>

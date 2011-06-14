@@ -96,6 +96,7 @@ h1 {
   display: block;
   padding: 10px;
   text-align: center;
+  width: 240px;
 }
 
 .infobar {
@@ -125,6 +126,7 @@ h1 {
   display: block;
   text-align: center;
   padding: 10px;
+  width: 200px;
 }
 
 .infobar > .season {
@@ -152,7 +154,7 @@ h1 {
 .series > .text > .text-wrapper > .episodes {
   display: table-cell;
   vertical-align: top;
-  width: 100%;
+  width: 748px;
   padding: 10px;
 }
 
@@ -184,8 +186,6 @@ h1 {
 #reload-outer {
   background-color: #111;
   padding: 10px;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
   text-align: right;
 }
 
@@ -206,4 +206,41 @@ h1 {
 
 .clear {
   clear: both;
+}
+
+#search-outer {
+  display: table-row;
+  font-size: 1.2em !important;
+  width: 1000px !important;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+#search-outer #show {
+  display: table-cell;
+  vertical-align: top;
+  width: 900px !important;
+}
+
+#search-outer #show input {
+  border: 0;
+  padding: 4px;
+  background-color: #112;
+  color: #fff;
+  width: 900px !important;
+  height: 26px;
+}
+
+#search-outer #submit {
+  display: table-cell;
+  vertical-align: top;
+}
+
+#search-outer #submit input {
+  border: 0;
+  padding: 2px;
+  background-color: #111;
+  color: #0f0;
+  width: 100px !important;
+  height: 34px;
 }
