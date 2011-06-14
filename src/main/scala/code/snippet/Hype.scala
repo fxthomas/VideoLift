@@ -12,6 +12,8 @@ import net.liftweb.http.js.JsCmds._
 import net.liftweb.http.js.JsCmd
 import net.liftweb.mapper.{Like, OrderBy, Ascending}
 
+import java.util.Random
+
 import model.{HypeFile, HypeShow}
 
 object Hype {
@@ -20,6 +22,9 @@ object Hype {
   val SearchSeasonRE = """(?i)(.*?)season ([0-9]+)(.*)""".r
   val SearchEpisodeRE = """(?i)(.*?)episode ([0-9]+)(.*)""".r
   val NewestRE = """(?i)(newest|latest|new)(.*)""".r
+  val RandomRE = """(?i)random""".r
+
+  val RandSeed = new Random(System.currentTimeMillis());
 }
 
 class Hype extends Logger {
@@ -49,6 +54,11 @@ class Hype extends Logger {
   var newest = false;
 
   /**
+   * Do we want a random show?
+   */
+  var random = false;
+
+  /**
    * Update variables based on request, and fetch info from DB
    */
   def updateShow (s: String) = {
@@ -63,39 +73,55 @@ class Hype extends Logger {
     }
 
     /*
-     * Do we want a specific season?
+     * Do we want a random series?
      */
-    season = req match {
-      case Hype.SearchSeasonRE(_, sh, _)    => Full(sh toLong)
-      case Hype.SearchEp1RE   (_, sh, _, _) => Full(sh toLong)
-      case Hype.SearchEp2RE   (_, sh, _, _) => Full(sh toLong)
-      case _ => Empty
+    random = req match {
+      case Hype.RandomRE() => true
+      case _ => false
     }
 
-    /*
-     * Do we want a specific episode?
-     */
-    episode = req match {
-      case Hype.SearchEpisodeRE(_, e, _)    => Full(e toLong)
-      case Hype.SearchEp1RE    (_, _, e, _) => Full(e toLong)
-      case Hype.SearchEp2RE    (_, _, e, _) => Full(e toLong)
-      case _ => Empty
-    }
+    if (!random) {
+      /*
+       * Do we want a specific season?
+       */
+      season = req match {
+        case Hype.SearchSeasonRE(_, sh, _)    => Full(sh toLong)
+        case Hype.SearchEp1RE   (_, sh, _, _) => Full(sh toLong)
+        case Hype.SearchEp2RE   (_, sh, _, _) => Full(sh toLong)
+        case _ => Empty
+      }
 
-    /*
-     * Remove all special requests
-     */
-    req = Hype.SearchEp1RE.replaceAllIn(req, m => m.group(1) + m.group(4))
-    req = Hype.SearchEp2RE.replaceAllIn(req, m => m.group(4) + m.group(4))
-    req = Hype.SearchSeasonRE.replaceAllIn(req, m => m.group(1) + m.group(3))
-    req = Hype.SearchEpisodeRE.replaceAllIn(req, m => m.group(1) + m.group(3))
-    req = Hype.NewestRE.replaceAllIn (req, m => m.group(2))
-    req = req.replaceAll ("""[^a-zA-Z0-9]""", " ")
+      /*
+       * Do we want a specific episode?
+       */
+      episode = req match {
+        case Hype.SearchEpisodeRE(_, e, _)    => Full(e toLong)
+        case Hype.SearchEp1RE    (_, _, e, _) => Full(e toLong)
+        case Hype.SearchEp2RE    (_, _, e, _) => Full(e toLong)
+        case _ => Empty
+      }
+
+      /*
+       * Remove all special requests
+       */
+      req = Hype.SearchEp1RE.replaceAllIn(req, m => m.group(1) + m.group(4))
+      req = Hype.SearchEp2RE.replaceAllIn(req, m => m.group(4) + m.group(4))
+      req = Hype.SearchSeasonRE.replaceAllIn(req, m => m.group(1) + m.group(3))
+      req = Hype.SearchEpisodeRE.replaceAllIn(req, m => m.group(1) + m.group(3))
+      req = Hype.NewestRE.replaceAllIn (req, m => m.group(2))
+
+      /*
+       * Optimise string for search
+       */
+      req = req.replaceAll ("""[^a-zA-Z0-9]""", " ")
+      req = req.replaceAll ("""^ +""", "")
+      req = req.replaceAll (""" +$""", "")
+    } else req = ""
 
     /*
      * Fetch info from DB
      */
-    if (req != "") {
+    if (req != "" || random) {
       debug ("Searching show: " + req + (season match { case Full(s) => " / Season " + s; case _ => "" }) + (episode match { case Full(e) => " / Episode " + e; case _ => "" }))
       shows = HypeShow.findAll (Like(HypeShow.title, "%" + (req replaceAll(""" """, "%")) + "%"), OrderBy (HypeShow.title, Ascending))
     }
@@ -170,7 +196,17 @@ class Hype extends Logger {
   /**
    * Render the full list of shows
    */
-  def renderList = ".series *" #> (shows filter(s => s.files.length != 0) map (renderShow))
+  def renderList = ".series *" #> (
+    if (!random) {
+      (shows filter(s => s.files.length != 0) map (renderShow))
+    } else {
+      val sf = shows filter (s => s.files.length != 0);
+      if (sf.length != 0) {
+        val rand = Hype.RandSeed.nextInt (sf.length);
+        List(renderShow (sf(rand)))
+      } else List()
+    }
+  )
 
   /**
    * Render the Reload button

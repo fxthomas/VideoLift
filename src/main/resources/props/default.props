@@ -7,3 +7,6 @@ db.password=vltestpw
 # Library URIs
 library.path=/home/fx/Videos/
 library.url=file:///home/fx/Videos/
+
+# Run mode
+run.mode=production
