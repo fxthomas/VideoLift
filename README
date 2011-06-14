@@ -1,0 +1,4 @@
+VideoLift is a small automatic TV shows, movies,... library.
+
+It fetches metadata automatically from file names :
+  e.g. Awesome.Show.s01e02.hdtv.XVid.avi -> Awesome Show, Season 1, Episode 2, with lots of info on it
