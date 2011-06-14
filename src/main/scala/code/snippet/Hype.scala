@@ -11,38 +11,51 @@ import net.liftweb.http.{ SHtml, IdMemoizeTransform }
 import net.liftweb.http.js.JsCmds._
 import net.liftweb.mapper.{OrderBy, Ascending}
 
-import model.HypeFile
+import model.{HypeFile, HypeShow}
 
 object Hype {
-  def findItems = HypeFile.findAll(OrderBy (HypeFile.show, Ascending), OrderBy (HypeFile.season, Ascending), OrderBy (HypeFile.episode, Ascending))
-  var items = findItems
+  def findShows = HypeShow.findAll(OrderBy (HypeShow.title, Ascending))
+  var shows = findShows
 }
 
 class Hype {
-  def renderList = ".file *" #> Hype.items.map (d =>
-    (if (d.title.is != "") ".title *" #> d.title else ".title" #> "") &
-    ".description *" #> (".episode *" #> d.description) &
-    (if (d.season.is != 0) ".season *" #> ("Season " + d.season) else ".season" #> "") &
-    (if (d.episode.is != 0) ".episode *" #> ("Episode " + d.episode) else ".episode" #> "") &
-    ".picture *" #> (
-      ".download [href]" #> ((Props.get("library.url") openOr "") + d.filename)
+  /**
+   * Render one episode
+   */
+  def renderEpisode (ep: HypeFile) = {
+    ".episode-picture *" #> (
+      "img [src]" #> ep.image &
+      ".download [href]" #> ((Props.get("library.url") openOr "/home/fx/Videos/") + ep.filename)
     ) &
-    (d.show.obj match {
-      case Full(s) => {
-        ".showtitle *" #> s.title &
-        ".description *" #> (".series *" #> s.description) &
-        (if (s.image.is != "") ".picture" #> ("img [src]" #> s.image)
-        else ".picture *" #> ("img" #> "" ))
-      }
-      case _ => {
-        ".showtitle" #> "" &
-        ".description *" #> (".series" #> "") &
-        ".picture *" #> ("img" #> "")
-      }
-    }))
+    (if (ep.season != 0)  ".season *"  #> ("Season " + ep.season)   else ".season" #> "") &
+    (if (ep.episode != 0) ".episode *" #> ("Episode " + ep.episode) else ".episode" #> "") &
+    (if (ep.title != 0)   ".title *"   #> (ep.title)                else ".title" #> "") &
+    ".description *" #> ep.description
+  }
 
+  /**
+   * Render one show
+   */
+  def renderShow (show: HypeShow) = {
+    ".series-info" #> (
+      ".picture *" #> (
+        "img [src]" #> show.image &
+        ".showtitle *" #> show.title
+      ) & ".description *" #> show.description
+    ) &
+    ".episodes *" #> (".episode *" #> show.files.map (renderEpisode))
+  }
+
+  /**
+   * Render the full list of shows
+   */
+  def renderList = ".series *" #> (Hype.shows filter(s => s.files.length != 0) map (renderShow))
+
+  /**
+   * Finish template bindings
+   */
   def render = "*" #> renderList &
     "*" #> SHtml.idMemoize (outer =>
-      "#reload [onclick]" #> SHtml.ajaxInvoke (() => { HypeFile.update(); Hype.items = Hype.findItems; SetHtml (outer.latestId, renderList(outer.applyAgain())) })
+      "#reload [onclick]" #> SHtml.ajaxInvoke (() => { HypeFile.update(); Hype.shows = Hype.findShows; SetHtml (outer.latestId, renderList(outer.applyAgain())) })
     )
 }

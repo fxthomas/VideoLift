@@ -40,41 +40,56 @@ h1 {
   width: 1000px;
 }
 
-.file {
+.series {
   background-color: #444;
   border-radius: 5px;
   display: table-row;
   width: 100%;
 }
 
-.file:hover {
+.series:hover {
   background-color: #3a3a3a;
 }
 
-.file > * {
+.series > * {
   display: table-cell;
   vertical-align: top;
 
   padding: 10px;
 }
 
-.file > .picture > img {
-  margin-left: 10px;
+.picture > img {
   margin-top: 4px;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
-  height: 280px;
   display: block;
 }
 
-.file > .picture > .download:hover {
+.picture > .download:hover {
   background-color: black;
   color: #0a0;
 }
 
-.file > .picture > .download {
+.series-picture {
+  margin-bottom: 15px;
+}
+
+.episode-picture img {
+  width: 260px;
+}
+
+.episode-picture {
+  padding: 0 10px 10px 0;
+  display: table-cell;
+  vertical-align: top;
+}
+
+.series-picture img {
+  width: 220px;
+}
+
+.picture > .download {
   text-decoration: none;
-  margin-left: 10px;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   background-color: black;
@@ -83,7 +98,7 @@ h1 {
   text-align: center;
 }
 
-.file > .text > .name {
+.infobar {
   font-size: 1.4em;
   font-family: serif;
   margin: 0;
@@ -91,42 +106,70 @@ h1 {
   text-shadow: #000 2px 2px 10px;
 }
 
-.file > .text > .name * {
+.infobar * {
   font-family: serif;
   margin: 2px;
   padding: 8px;
   display: inline-block;
 }
 
-.file > .text > .name > .title:before { content: "« "; }
-.file > .text > .name > .title:after { content: " »"; }
+.infobar > .title:before { content: "« "; }
+.infobar > .title:after { content: " »"; }
 
-.file > .text > .name > .showtitle {
+.series-picture > .showtitle {
   background-color: #333;
+  text-decoration: none;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  background-color: black;
+  display: block;
+  text-align: center;
+  padding: 10px;
 }
 
-.file > .text > .name > .season {
+.infobar > .season {
   background-color: #333;
   color: #f44;
 }
 
-.file > .text > .name > .episode {
+.infobar > .episode {
   background-color: #333;
   color: #f40;
 }
 
-.file > .text > .description {
+.series > .text > .text-wrapper {
   display: table-row;
   width: 100%;
 }
 
-.file > .text > .description > * {
+.series > .text > .text-wrapper > .series-info {
   display: table-cell;
-  width: 50%;
+  width: 180px;
+  padding: 10px;
+  background-color: #333;
+}
+
+.series > .text > .text-wrapper > .episodes {
+  display: table-cell;
+  vertical-align: top;
+  width: 100%;
   padding: 10px;
 }
 
-.file > .text > .description > .series { color: #ccc; }
+.episodes > .episode {
+  display: table-row;
+}
+
+.episodes > .episode > .info {
+  display: table-cell;
+  vertical-align: top;
+}
+
+.episode > .info > .description {
+  margin-bottom: 15px;
+}
+
+.series > .text > .text-wrapper > .series-info { color: #ccc; }
 
 .ajaxlink {
   text-decoration: none;
@@ -159,4 +202,8 @@ h1 {
   height: 15px;
   vertical-align: top;
   padding: 0 10px;
+}
+
+.clear {
+  clear: both;
 }

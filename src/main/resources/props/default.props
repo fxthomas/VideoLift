@@ -1,5 +1,11 @@
 # Default DB Driver
 db.driver=com.mysql.jdbc.Driver
-db.url=jdbc:mysql://localhost/videolift
+db.url=jdbc:mysql://cirrus.rezel.net/videolift
 db.user=videolift
 db.password=vltestpw
+
+# Library URIs
+#library.path=/data/symbackup/20Mar2011/
+#library.url=https://pandore.rezel.net/
+library.path=/home/fx/Videos/
+library.url=file:///home/fx/Videos/

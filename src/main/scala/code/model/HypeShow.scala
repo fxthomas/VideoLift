@@ -2,9 +2,9 @@ package code
 package model
 
 import net.liftweb._
-import util.Props
-import mapper._
-import common._
+import net.liftweb.util.Props
+import net.liftweb.mapper._
+import net.liftweb.common._
 
 import trakt._
 
