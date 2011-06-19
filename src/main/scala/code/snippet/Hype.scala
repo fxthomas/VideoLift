@@ -14,7 +14,7 @@ import net.liftweb.mapper.{Like, OrderBy, Ascending}
 
 import java.util.Random
 
-import model.{HypeFile, HypeShow}
+import model.{HypeFile, HypeEpisode, HypeShow}
 
 object Hype {
   val SearchEp1RE = """(.*?)[sS]([0-9]+)[eE]([0-9]+)(.*)""".r
@@ -134,10 +134,13 @@ class Hype extends Logger {
   /**
    * Render one episode
    */
-  def renderEpisode (ep: HypeFile) = {
+  def renderEpisode (ep: HypeEpisode) = {
     ".episode-picture *" #> (
       (if (ep.image != "") "img [src]" #> ep.image else "img" #> "") &
-      ".download [href]" #> ((Props.get("library.url") openOr "/home/fx/Videos/") + ep.filename)
+      ".download *" #> (".links *" #> ("._link *" #> (ep.files map(f => {
+        "a [href]" #> ((Props.get("library.url") openOr "/home/fx/Videos/") + f.filename) &
+        "a *" #> ("span *" #> (f info))
+      }))))
     ) &
     (if (ep.season != 0)  ".season *"  #> ("Season " + ep.season)   else ".season" #> "") &
     (if (ep.episode != 0) ".episode *" #> ("Episode " + ep.episode) else ".episode" #> "") &

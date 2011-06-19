@@ -106,11 +106,6 @@ a:hover {
   display: block;
 }
 
-.picture > .download:hover {
-  background-color: black;
-  color: #0a0;
-}
-
 .series-picture {
   margin-bottom: 15px;
 }
@@ -138,6 +133,18 @@ a:hover {
   padding: 10px;
   text-align: center;
   width: 240px;
+}
+
+.picture > .download > .message {
+  color: #50a;
+}
+
+.picture > .download > .links {
+  display: none;
+}
+
+.picture > .download > .links > a{
+  display: block;
 }
 
 .infobar {

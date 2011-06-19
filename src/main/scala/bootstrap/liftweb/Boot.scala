@@ -42,6 +42,7 @@ class Boot {
     Schemifier.schemify(true, Schemifier.infoF _, HypeMapper)
     Schemifier.schemify(true, Schemifier.infoF _, HypeShow)
     Schemifier.schemify(true, Schemifier.infoF _, HypeFile)
+    Schemifier.schemify(true, Schemifier.infoF _, HypeEpisode)
     
     HypeFile.update()
 

@@ -17,7 +17,7 @@ class HypeShow extends LongKeyedMapper[HypeShow] with OneToMany[Long, HypeShow] 
   object tvdb_id extends MappedLong (this)
   object description extends MappedText (this)
   object image extends MappedString (this, 256)
-  object files extends MappedOneToMany (HypeFile, HypeFile.show, OrderBy(HypeFile.season, Ascending), OrderBy(HypeFile.episode, Ascending))
+  object files extends MappedOneToMany (HypeEpisode, HypeEpisode.show, OrderBy(HypeEpisode.season, Ascending), OrderBy(HypeEpisode.episode, Ascending))
 }
 
 object HypeShow extends HypeShow with LongKeyedMetaMapper[HypeShow] with Logger {

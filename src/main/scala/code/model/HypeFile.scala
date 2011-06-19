@@ -2,37 +2,50 @@ package code
 package model
 
 import net.liftweb._
-import util.Props
-import mapper._
-import common._
-import scala.tools.nsc.io.Path
+import net.liftweb.util.Props
+import net.liftweb.mapper._
+import net.liftweb.common._
+
 import scala.util.matching.Regex
+import scala.tools.nsc.io.Path
+
 import trakt._
 
 class HypeFile extends LongKeyedMapper[HypeFile] {
   def getSingleton = HypeFile
   def primaryKeyField = id
-
+  
   object id extends MappedLongIndex (this)
-  object filename extends MappedText (this)
-  object imdb_id extends MappedLong (this)
   object title extends MappedString (this, 256)
-  object show extends LongMappedMapper (this, HypeShow)
-  object season extends MappedLong (this)
-  object episode extends MappedLong (this)
-  object description extends MappedText (this)
-  object image extends MappedString (this, 256)
-}
+  object year extends MappedLong (this)
+  object filename extends MappedString (this, 256)
+  object codec extends MappedEnum[HypeFile, HypeFile.Codec.type] (this, HypeFile.Codec)
+  object quality extends MappedEnum[HypeFile, HypeFile.Quality.type] (this, HypeFile.Quality)
+  object episode extends LongMappedMapper (this, HypeEpisode)
+  object full_info extends MappedText (this)
 
-object HypeMisc extends Logger {
-  def create (name: String) = {
-    info ("Misc: " ++ name)
-    (HypeFile create) title(name) filename(name)
+  def info = {
+    (if (quality.is != HypeFile.Quality.Other) quality.is.toString else "") +
+    (if (codec.is != HypeFile.Codec.Other && quality.is != HypeFile.Quality.Other) " | " else "") +
+    (if (codec.is != HypeFile.Codec.Other) codec.is.toString else "")
   }
 }
 
 object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger {
   override def dbTableName = "files"
+
+  object Codec extends Enumeration {
+    val H264 = Value ("H264")
+    val XviD = Value ("XviD")
+    val Other = Value ("Other")
+  }
+
+  object Quality extends Enumeration {
+    val SD = Value ("SD")
+    val HD = Value ("HD")
+    val FullHD = Value ("Full HD")
+    val Other = Value ("Other")
+  }
 
   val ExtRE = """.*\.(mkv|MKV|avi|AVI|mp4|MP4|ogm|OGM)$""".r
   val AnimeRE = new Regex ("""(.+?/)*\[([a-zA-Z0-9_]+?)\]( |_)([a-zA-Z0-9_ \-?!]+)( |_)-( |_)([0-9]+)(.*)""", "dir", "source", "", "name", "", "", "episode", "info")
@@ -41,56 +54,100 @@ object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger 
   val Anime4RE = new Regex ("""(.+?/)*_*([a-zA-Z0-9_]+?)_+([a-zA-Z0-9_ \-?!]+)_+([0-9]+)_+(.*)""", "ir", "source", "name", "episode", "info")
   val TVRE = new Regex ("""(.+?/)*([a-zA-Z0-9_.]+)\.[sS]([0-9]+)[eE]([0-9]+)(.*)""", "dir", "name", "season", "episode", "info")
   val TV2RE = new Regex ("""(.+?/)*([a-zA-Z0-9_.]+)\.([0-9]+)[xX]([0-9]+)(.*)""", "dir", "name", "season", "episode", "info")
-  val MovieRE = new Regex ("""(.+?/)*([a-zA-Z0-9.]+)\.([0-9]{4})\.(720p|1080p|HDTV)\.([a-zA-Z0-9.]+)-([a-zA-Z0-9.]+)""", "dir", "name", "year", "format", "codec", "source")
+  val MovieRE = new Regex ("""(.+?/)*([a-zA-Z0-9.]+)\.([0-9]{4})\.(.*)""", "dir", "name", "year", "info")
+
+  val CodecH264RE = new Regex ("""(?i).*(x264|h264).*""")
+  val CodecXviDRE = new Regex ("""(?i).*(xvid).*""")
+  val QualitySDRE = new Regex ("""(?i).*(sd|dvdrip).*""")
+  val QualityHDRE = new Regex ("""(?i).*(720p).*""")
+  val QualityFullHDRE = new Regex ("""(?i).*(1080p).*""")
 
   implicit def toClean (s: String) = new { def clean = s replaceAll ("^[\\-_ ]+", "") replaceAll ("[\\-_ ]+$", "") replaceAll ("[_.]", " ") }
 
-  def createEpisode (_name: String, filename: String, season: Int, episode: Int): HypeFile = {
-    info ("Searching file: " + filename + " (Season = " + season + ", Episode = " + episode + ")")
+  def createMisc (fn: String) = {
+    val hf = (HypeFile create) filename(fn) title(fn)
 
-    // Find show filename mapping if there is one
-    val mapping = HypeMapper.findAll (By (HypeMapper.original, _name))
-    val show = if (mapping.length > 0) {
-      val hs = HypeShow.findAll (By (HypeShow.tvdb_id, mapping(0).map.is))
-      if (hs.length > 0) hs(0) else { HypeShow.createShow(_name, mapping(0).map.is) }
-    } else {
-      val hs = HypeShow.findAll (By (HypeShow.title, _name))
-      if (hs.length > 0) hs(0) else { HypeShow.createShow(_name) }
+    val codec = fn match {
+      case CodecH264RE(_) => Codec.H264
+      case CodecXviDRE(_) => Codec.XviD
+      case _ => Codec.Other
+    }
+    
+    val quality = fn match {
+      case QualitySDRE(_) => Quality.SD
+      case QualityHDRE(_) => Quality.HD
+      case QualityFullHDRE(_) => Quality.FullHD
+      case _ => Quality.Other
     }
 
-    // Create Episode
-    val hf = (HypeFile.create) show(show) filename(filename) season(season) episode(episode);
+    hf quality(quality) codec(codec)
+  }
 
-    // Search for episode
-    Episode.summary (show.tvdb_id, season, episode) match {
-      case Full(eps) => { hf description(eps.episode.overview); hf image(eps.episode.images.screen); hf title(eps.episode.title) }
-      case _ => hf description("No description")
+  def createMovie (name: String, filename: String, year: Long, inf: String) = {
+    val hf = (HypeFile create) title(name) filename(filename) full_info(inf)
+
+    val codec = inf match {
+      case CodecH264RE(_) => Codec.H264
+      case CodecXviDRE(_) => Codec.XviD
+      case _ => Codec.Other
     }
+    
+    val quality = inf match {
+      case QualitySDRE(_) => Quality.SD
+      case QualityHDRE(_) => Quality.HD
+      case QualityFullHDRE(_) => Quality.FullHD
+      case _ => Quality.Other
+    }
+
+    hf quality(quality) codec(codec)
+  }
+
+  def createFile (_name: String, filename: String, season: Long, episode: Long, inf: String): HypeFile = {
+    val ep = HypeEpisode.createEpisode (_name, season, episode)
+    val hf = (HypeFile create) episode(ep) filename(filename) full_info(inf)
+
+    val codec = inf match {
+      case CodecH264RE(_) => Codec.H264
+      case CodecXviDRE(_) => Codec.XviD
+      case _ => Codec.Other
+    }
+    
+    val quality = inf match {
+      case QualitySDRE(_) => Quality.SD
+      case QualityHDRE(_) => Quality.HD
+      case QualityFullHDRE(_) => Quality.FullHD
+      case _ => Quality.Other
+    }
+
+    hf quality(quality) codec(codec)
   }
 
   def update () {
     val dir = Props.get ("library.path") openOr "/home/fx/Videos/"
     info ("Upating directory structure: " ++ dir)
 
-    val fslist = Path (new java.io.File (dir)).walk map (_.path replaceAll("""^""" + dir, "")) filter(_ match { case ExtRE(ext) => true; case _ => false }) toList
+    val fslist = Path (new java.io.File (dir)).walk map (_.path replaceAll("""^""" + dir, "")) filter(f => !(f matches("""(?i).*sample.*"""))) filter(_ match { case ExtRE(ext) => true; case _ => false }) toList
     val fulldblist = HypeFile.findAll ()
     val dblist = fulldblist filter(d => fslist contains d.filename.is) map (_.filename)
 
     // Remove all shows that aren't in the file system anymore
     fulldblist filter(d => !(fslist contains d.filename.is)) foreach (_ delete_!)
 
+    // Remove all episodes that don't have any file left
+    HypeEpisode.findAll() filter(d => d.files.length <= 0) foreach (_ delete_!)
+
     // Parse new files for shows
     fslist
       .filter (f => !(dblist contains f))
       .map (_ match {
-        case n@AnimeRE (dir, source, _, name, _, _, episode, inf) => HypeFile.createEpisode (name clean, n, 1, episode toInt)
-        case n@Anime2RE (dir, source, _, name, _, episode, inf) => HypeFile.createEpisode (name clean, n, 1, episode toInt)
-        case n@Anime3RE (dir, source, name, episode, inf) => HypeFile.createEpisode (name clean, n, 1, episode toInt)
-        case n@Anime4RE (dir, source, name, episode, inf) => HypeFile.createEpisode (name clean, n, 1, episode toInt)
-        case n@MovieRE (dir, name, year, format, codec, source) => (HypeFile.create) title(name clean) filename(n)
-        case n@TVRE (dir, name, season, episode, inf) => HypeFile.createEpisode (name clean, n, season toInt, episode toInt)
-        case n@TV2RE (dir, name, season, episode, inf) => HypeFile.createEpisode (name clean, n, season toInt, episode toInt)
-        case n@_ => (HypeFile.create) title(n) filename(n)
+        case n@AnimeRE (dir, source, _, name, _, _, episode, inf) => HypeFile.createFile (name clean, n, 1, episode toLong, inf)
+        case n@Anime2RE (dir, source, _, name, _, episode, inf) => HypeFile.createFile (name clean, n, 1, episode toLong, inf)
+        case n@Anime3RE (dir, source, name, episode, inf) => HypeFile.createFile (name clean, n, 1, episode toLong, inf)
+        case n@Anime4RE (dir, source, name, episode, inf) => HypeFile.createFile (name clean, n, 1, episode toLong, inf)
+        case n@TVRE (dir, name, season, episode, inf) => HypeFile.createFile (name clean, n, season toLong, episode toLong, inf)
+        case n@TV2RE (dir, name, season, episode, inf) => HypeFile.createFile (name clean, n, season toLong, episode toLong, inf)
+        case n@MovieRE (dir, name, year, inf) => HypeFile.createMovie (name clean, n, year toLong, inf)
+        case n@_ => HypeFile.createMisc (n)
       }
     ).foreach (_ save)
   }
