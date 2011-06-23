@@ -22,6 +22,7 @@ class HypeFile extends LongKeyedMapper[HypeFile] {
   object codec extends MappedEnum[HypeFile, HypeFile.Codec.type] (this, HypeFile.Codec)
   object quality extends MappedEnum[HypeFile, HypeFile.Quality.type] (this, HypeFile.Quality)
   object episode extends LongMappedMapper (this, HypeEpisode)
+  object movie extends LongMappedMapper (this, HypeMovie)
   object full_info extends MappedText (this)
 
   def info = {
@@ -54,7 +55,7 @@ object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger 
   val Anime4RE = new Regex ("""(.+?/)*_*([a-zA-Z0-9_]+?)_+([a-zA-Z0-9_ \-?!]+)_+([0-9]+)_+(.*)""", "ir", "source", "name", "episode", "info")
   val TVRE = new Regex ("""(.+?/)*([a-zA-Z0-9_.]+)\.[sS]([0-9]+)[eE]([0-9]+)(.*)""", "dir", "name", "season", "episode", "info")
   val TV2RE = new Regex ("""(.+?/)*([a-zA-Z0-9_.]+)\.([0-9]+)[xX]([0-9]+)(.*)""", "dir", "name", "season", "episode", "info")
-  val MovieRE = new Regex ("""(.+?/)*([a-zA-Z0-9.]+)\.([0-9]{4})\.(.*)""", "dir", "name", "year", "info")
+  val MovieRE = new Regex ("""(.+?/)*([a-zA-Z0-9.\-]+)\.([0-9]{4})\.(.*)""", "dir", "name", "year", "info")
 
   val CodecH264RE = new Regex ("""(?i).*(x264|h264).*""")
   val CodecXviDRE = new Regex ("""(?i).*(xvid).*""")
@@ -84,7 +85,8 @@ object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger 
   }
 
   def createMovie (name: String, filename: String, year: Long, inf: String) = {
-    val hf = (HypeFile create) title(name) filename(filename) full_info(inf)
+    val movie = HypeMovie.createMovie (name)
+    val hf = (HypeFile create) movie(movie) title(name) filename(filename) full_info(inf)
 
     val codec = inf match {
       case CodecH264RE(_) => Codec.H264
@@ -102,8 +104,8 @@ object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger 
     hf quality(quality) codec(codec)
   }
 
-  def createFile (_name: String, filename: String, season: Long, episode: Long, inf: String): HypeFile = {
-    val ep = HypeEpisode.createEpisode (_name, season, episode)
+  def createFile (name: String, filename: String, season: Long, episode: Long, inf: String): HypeFile = {
+    val ep = HypeEpisode.createEpisode (name, season, episode)
     val hf = (HypeFile create) episode(ep) filename(filename) full_info(inf)
 
     val codec = inf match {

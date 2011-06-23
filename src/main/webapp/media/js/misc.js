@@ -19,4 +19,16 @@ $(function() {
     $(this).children('.message').slideDown(100);
     $(this).children('.links').slideUp(100);
   });
+
+  $('body').delegate ("#movies-header", "click", function (ev) {
+    $('.movies').fadeToggle();
+  });
+  $('body').delegate ("#series-header", "click", function (ev) {
+    $('.series').fadeToggle();
+  });
+  $('body').delegate ("#misc-header", "click", function (ev) {
+    $('.misc').fadeToggle();
+  });
+
+  $('.cat-header').hide(0);
 });

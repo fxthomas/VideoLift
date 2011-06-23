@@ -14,7 +14,7 @@ class HypeShow extends LongKeyedMapper[HypeShow] with OneToMany[Long, HypeShow] 
   
   object id extends MappedLongIndex (this)
   object title extends MappedString (this, 256)
-  object tvdb_id extends MappedLong (this)
+  object tvdb_id extends MappedString (this, 50)
   object description extends MappedText (this)
   object image extends MappedString (this, 256)
   object files extends MappedOneToMany (HypeEpisode, HypeEpisode.show, OrderBy(HypeEpisode.season, Ascending), OrderBy(HypeEpisode.episode, Ascending))
@@ -33,11 +33,11 @@ object HypeShow extends HypeShow with LongKeyedMetaMapper[HypeShow] with Logger 
     }
     {if (shows.length > 0) {
       info ("Show found: " ++ shows(0).title)
-      if (shows(0).title != name) (HypeMapper create) original(name) map(shows(0).tvdb_id toInt) save
+      if (shows(0).title != name) (HypeMapper create) original(name) map(shows(0).tvdb_id) save
 
       hf title(shows(0).title)
       hf description (shows(0).overview)
-      hf tvdb_id (shows(0).id)
+      hf tvdb_id (shows(0).tvdb_id)
       hf image (shows(0).images.poster)
     } else { info ("Not found: " ++ name); hf }} save
 
@@ -53,7 +53,7 @@ object HypeShow extends HypeShow with LongKeyedMetaMapper[HypeShow] with Logger 
       info ("Show found: " + sh.title)
       hf title(sh.title)
       hf description (sh.overview)
-      hf tvdb_id (sh.id)
+      hf tvdb_id (sh.tvdb_id)
       hf image (sh.images.poster)
     } catch {
       case e:java.io.IOException => { info (e); (HypeShow create) title(name) }

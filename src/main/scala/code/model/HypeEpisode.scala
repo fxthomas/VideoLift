@@ -15,7 +15,6 @@ class HypeEpisode extends LongKeyedMapper[HypeEpisode] with OneToMany[Long, Hype
   object id extends MappedLongIndex (this)
   object title extends MappedString (this, 256)
   object files extends MappedOneToMany (HypeFile, HypeFile.episode, OrderBy(HypeFile.quality, Ascending))
-  object imdb_id extends MappedLong (this)
   object show extends LongMappedMapper (this, HypeShow)
   object season extends MappedLong (this)
   object episode extends MappedLong (this)
@@ -33,7 +32,7 @@ object HypeEpisode extends HypeEpisode with LongKeyedMetaMapper[HypeEpisode] wit
     val mapping = HypeMapper.findAll (By (HypeMapper.original, _name))
     val show = if (mapping.length > 0) {
       val hs = HypeShow.findAll (By (HypeShow.tvdb_id, mapping(0).map.is))
-      if (hs.length > 0) hs(0) else { HypeShow.createShow(_name, mapping(0).map.is) }
+      if (hs.length > 0) hs(0) else { HypeShow.createShow(_name, mapping(0).map.is toLong) }
     } else {
       val hs = HypeShow.findAll (By (HypeShow.title, _name))
       if (hs.length > 0) hs(0) else { HypeShow.createShow(_name) }

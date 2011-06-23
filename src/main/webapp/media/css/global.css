@@ -81,7 +81,7 @@ a:hover {
   padding-left: 10px;
 }
 
-.series {
+.series, .movies, .miscs {
   background-color: #444;
   border-radius: 5px;
   display: table-row;
@@ -92,7 +92,7 @@ a:hover {
   background-color: #3a3a3a;
 }
 
-.series > * {
+.series > *, .movies > *, .miscs > * {
   display: table-cell;
   vertical-align: top;
 
@@ -106,7 +106,7 @@ a:hover {
   display: block;
 }
 
-.series-picture {
+.series-picture, .movie-picture, .misc-picture {
   margin-bottom: 15px;
 }
 
@@ -120,11 +120,11 @@ a:hover {
   vertical-align: top;
 }
 
-.series-picture img {
+.series-picture img, .movie-picture img, .misc-picture img {
   width: 220px;
 }
 
-.picture > .download {
+.episode-picture > .download {
   text-decoration: none;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
@@ -133,6 +133,17 @@ a:hover {
   padding: 10px;
   text-align: center;
   width: 240px;
+}
+
+.movie-picture > .download, .misc-picture > .download {
+  text-decoration: none;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  background-color: black;
+  display: block;
+  padding: 10px;
+  text-align: center;
+  width: 200px;
 }
 
 .picture > .download > .message {
@@ -165,7 +176,7 @@ a:hover {
 .infobar > .title:before { content: "« "; }
 .infobar > .title:after { content: " »"; }
 
-.series-picture > .showtitle {
+.series-picture > .showtitle, .movie-picture > .showtitle, .misc-picture > .showtitle {
   background-color: #333;
   text-decoration: none;
   border-bottom-left-radius: 5px;
@@ -177,14 +188,18 @@ a:hover {
   width: 200px;
 }
 
-.infobar > .season {
+.infobar > .season, .infobar > .year {
   background-color: #333;
   color: #f44;
 }
 
-.infobar > .episode {
+.infobar > .episode, .infobar > .duration {
   background-color: #333;
   color: #f40;
+}
+
+.infobar > .duration:after {
+  content: " min";
 }
 
 .series > .text > .text-wrapper {
@@ -192,14 +207,14 @@ a:hover {
   width: 100%;
 }
 
-.series > .text > .text-wrapper > .series-info {
+.series > .text > .text-wrapper > .series-info, .movie > .movie-info, .misc > .misc-info {
   display: table-cell;
   width: 180px;
   padding: 10px;
   background-color: #333;
 }
 
-.series > .text > .text-wrapper > .episodes {
+.series > .text > .text-wrapper > .episodes, .movie > .info, .misc > .info {
   display: table-cell;
   vertical-align: top;
   width: 748px;
@@ -210,16 +225,16 @@ a:hover {
   display: table-row;
 }
 
-.episodes > .episode > .info {
+.episodes > .episode > .info, .movie > .info, .misc > .info {
   display: table-cell;
   vertical-align: top;
 }
 
-.episode > .info > .description {
+.episode > .info > .description, .movie > .info > .description, .misc > .info > .description {
   margin-bottom: 15px;
 }
 
-.series > .text > .text-wrapper > .series-info { color: #ccc; }
+.series > .text > .text-wrapper > .series-info, .movie > .movie-info, .misc > .misc-info { color: #ccc; }
 
 .ajaxlink {
   text-decoration: none;
@@ -291,4 +306,25 @@ a:hover {
   color: #0f0;
   width: 100px !important;
   height: 34px;
+}
+
+.cat-header {
+  color: #0a0;
+  font-size: 1.4em;
+  padding: 10px;
+  text-align: center;
+  background-color: #222;
+  cursor: pointer;
+}
+
+.cat-header.hidden {
+  display: none;
+}
+
+.cat-header:hover {
+  color: #0f0;
+}
+
+.cat-header > .hidden {
+  display: none;
 }

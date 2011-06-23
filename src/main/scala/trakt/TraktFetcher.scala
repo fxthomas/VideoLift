@@ -13,6 +13,20 @@ object Additions {
 }
 
 /**
+ * Case class containing movie data
+ */
+case class Movie (title: String,
+                  year: Long,
+                  url: String,
+                  runtime: Long,
+                  overview: String,
+                  imdb_id: String,
+                  images: ShowImages) {
+  override def toString() = title + " (" + year + ")"
+}
+
+
+/**
  * Case class containing episode data
  */
 case class Episode (season: Long,
@@ -20,6 +34,7 @@ case class Episode (season: Long,
                     title: String,
                     overview: String,
                     first_aired: Long,
+                    url: String,
                     images: EpisodeImages) {
   val date = new java.util.Date (first_aired*1000L)
   override def toString() = title + " (" + season + "x" + number + ")"
@@ -43,14 +58,14 @@ case class Show (title: String,
                  air_day: String,
                  air_time: String,
                  tvdb_id: String,
+                 url: String,
                  images: ShowImages) {
-  val id = tvdb_id.toLong
   override def toString() = title
 
   /**
    * Select one episode for this show
    */
-  def episode (season: Long, episode: Long) = Episode.summary (id, season, episode)
+  def episode (season: Long, episode: Long) = Episode.summary (tvdb_id, season, episode)
 }
 
 /**
@@ -62,7 +77,7 @@ object Episode extends Logger {
   /**
    * Fetch episode data from Trakt
    */
-  def summary (tvdb_id: Long, season: Long, episode: Long): Box[FullEpisode] = {
+  def summary (tvdb_id: String, season: Long, episode: Long): Box[FullEpisode] = {
     info ("Fetching episode info for tvdb_id=" + tvdb_id);
     try {
       Full(parse (scala.io.Source.fromURL ("http://api-trakt.apigee.com/show/episode/summary.json/" + API_KEY + "/" + tvdb_id + "/" + season + "/" + episode).mkString).extract[FullEpisode])
@@ -92,9 +107,18 @@ object Trakt extends Logger {
   import Additions._
 
   /**
+   * Fetch movie info
+   */
+  def movie (imdb: Long): Movie = {
+    val enc = java.net.URLEncoder.encode (imdb toString, "UTF-8");
+    debug ("Sending request: " + "http://api-trakt.apigee.com/movie/summary.json/" + API_KEY + "/" + enc)
+    parse (scala.io.Source.fromURL ("http://api-trakt.apigee.com/movie/summary.json/" + API_KEY + "/" + enc).mkString).extract[Movie]
+  }
+
+  /**
    * Fetch show data
    */
-  def show (name: String):Show = {
+  def show (name: String): Show = {
     val enc = java.net.URLEncoder.encode (name, "UTF-8");
     debug ("Sending request: " + "http://api-trakt.apigee.com/show/summary.json/" + API_KEY + "/" + enc)
     parse (scala.io.Source.fromURL ("http://api-trakt.apigee.com/show/summary.json/" + API_KEY + "/" + enc).mkString).extract[Show]
@@ -116,6 +140,15 @@ object Trakt extends Logger {
     val enc = java.net.URLEncoder.encode (name, "UTF-8");
     debug ("Sending request: " + "http://api-trakt.apigee.com/user/search/shows.json/" + API_KEY + "/" + enc)
     parse (scala.io.Source.fromURL ("http://api-trakt.apigee.com/search/shows.json/" + API_KEY + "/" + enc).mkString).extract[List[Show]]
+  }
+
+  /**
+   * Search for movie
+   */
+  def searchMovie (name: String): List[Movie] = {
+    val enc = java.net.URLEncoder.encode (name, "UTF-8");
+    debug ("Sending request: " + "http://api-trakt.apigee.com/user/search/movies.json/" + API_KEY + "/" + enc)
+    parse (scala.io.Source.fromURL ("http://api-trakt.apigee.com/search/movies.json/" + API_KEY + "/" + enc).mkString).extract[List[Movie]]
   }
 
   /**
@@ -142,4 +175,12 @@ object Show {
   def apply (s: String) = Trakt.show (s)
   def search (name: String) = Trakt.searchShow (name)
   def select (tv: Long) = Trakt.selectShow(tv)
+}
+
+/**
+ * Some static methods related to movies
+ */
+object Movie {
+  def apply (imdb: Long) = Trakt.movie (imdb)
+  def search (name: String) = Trakt.searchMovie (name)
 }

@@ -13,7 +13,7 @@ class HypeMapper extends LongKeyedMapper[HypeMapper] {
 
   object id extends MappedLongIndex (this)
   object original extends MappedString (this, 256)
-  object map extends MappedLong (this)
+  object map extends MappedString (this, 256)
 }
 
 object HypeMapper extends HypeMapper with LongKeyedMetaMapper[HypeMapper] {
