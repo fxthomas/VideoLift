@@ -50,6 +50,7 @@ class Boot {
     // where to search snippet
     LiftRules.addToPackages("code")
     LiftRules.early.append(makeUtf8) 
+    LiftRules.ajaxPath = "ajax"
 
     // Define SiteMap
     def sitemap(): SiteMap = SiteMap (
