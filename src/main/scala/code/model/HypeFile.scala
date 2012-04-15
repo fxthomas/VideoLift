@@ -19,29 +19,29 @@ class HypeFile extends LongKeyedMapper[HypeFile] {
   object title extends MappedString (this, 256)
   object year extends MappedLong (this)
   object filename extends MappedString (this, 256)
-  object codec extends MappedEnum[HypeFile, HypeFile.Codec.type] (this, HypeFile.Codec)
-  object quality extends MappedEnum[HypeFile, HypeFile.Quality.type] (this, HypeFile.Quality)
-  object episode extends LongMappedMapper (this, HypeEpisode)
-  object movie extends LongMappedMapper (this, HypeMovie)
+  object codec extends MappedEnum[HypeFile, HypeFile.CodecType.type] (this, HypeFile.CodecType)
+  object quality extends MappedEnum[HypeFile, HypeFile.QualityType.type] (this, HypeFile.QualityType)
+  object episode extends MappedLongForeignKey (this, HypeEpisode)
+  object movie extends MappedLongForeignKey (this, HypeMovie)
   object full_info extends MappedText (this)
 
   def info = {
-    (if (quality.is != HypeFile.Quality.Other) quality.is.toString else "") +
-    (if (codec.is != HypeFile.Codec.Other && quality.is != HypeFile.Quality.Other) " | " else "") +
-    (if (codec.is != HypeFile.Codec.Other) codec.is.toString else "")
+    (if (quality.is != HypeFile.QualityType.Other) quality.is.toString else "") +
+    (if (codec.is != HypeFile.CodecType.Other && quality.is != HypeFile.QualityType.Other) " | " else "") +
+    (if (codec.is != HypeFile.CodecType.Other) codec.is.toString else "")
   }
 }
 
 object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger {
   override def dbTableName = "files"
 
-  object Codec extends Enumeration {
+  object CodecType extends Enumeration {
     val H264 = Value ("H264")
     val XviD = Value ("XviD")
     val Other = Value ("Other")
   }
 
-  object Quality extends Enumeration {
+  object QualityType extends Enumeration {
     val SD = Value ("SD")
     val HD = Value ("HD")
     val FullHD = Value ("Full HD")
@@ -69,16 +69,16 @@ object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger 
     val hf = (HypeFile create) filename(fn) title(fn)
 
     val codec = fn match {
-      case CodecH264RE(_) => Codec.H264
-      case CodecXviDRE(_) => Codec.XviD
-      case _ => Codec.Other
+      case CodecH264RE(_) => CodecType.H264
+      case CodecXviDRE(_) => CodecType.XviD
+      case _ => CodecType.Other
     }
     
     val quality = fn match {
-      case QualitySDRE(_) => Quality.SD
-      case QualityHDRE(_) => Quality.HD
-      case QualityFullHDRE(_) => Quality.FullHD
-      case _ => Quality.Other
+      case QualitySDRE(_) => QualityType.SD
+      case QualityHDRE(_) => QualityType.HD
+      case QualityFullHDRE(_) => QualityType.FullHD
+      case _ => QualityType.Other
     }
 
     hf quality(quality) codec(codec)
@@ -89,16 +89,16 @@ object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger 
     val hf = (HypeFile create) movie(movie) title(name) filename(filename) full_info(inf)
 
     val codec = inf match {
-      case CodecH264RE(_) => Codec.H264
-      case CodecXviDRE(_) => Codec.XviD
-      case _ => Codec.Other
+      case CodecH264RE(_) => CodecType.H264
+      case CodecXviDRE(_) => CodecType.XviD
+      case _ => CodecType.Other
     }
     
     val quality = inf match {
-      case QualitySDRE(_) => Quality.SD
-      case QualityHDRE(_) => Quality.HD
-      case QualityFullHDRE(_) => Quality.FullHD
-      case _ => Quality.Other
+      case QualitySDRE(_) => QualityType.SD
+      case QualityHDRE(_) => QualityType.HD
+      case QualityFullHDRE(_) => QualityType.FullHD
+      case _ => QualityType.Other
     }
 
     hf quality(quality) codec(codec)
@@ -109,16 +109,16 @@ object HypeFile extends HypeFile with LongKeyedMetaMapper[HypeFile] with Logger 
     val hf = (HypeFile create) episode(ep) filename(filename) full_info(inf)
 
     val codec = inf match {
-      case CodecH264RE(_) => Codec.H264
-      case CodecXviDRE(_) => Codec.XviD
-      case _ => Codec.Other
+      case CodecH264RE(_) => CodecType.H264
+      case CodecXviDRE(_) => CodecType.XviD
+      case _ => CodecType.Other
     }
     
     val quality = inf match {
-      case QualitySDRE(_) => Quality.SD
-      case QualityHDRE(_) => Quality.HD
-      case QualityFullHDRE(_) => Quality.FullHD
-      case _ => Quality.Other
+      case QualitySDRE(_) => QualityType.SD
+      case QualityHDRE(_) => QualityType.HD
+      case QualityFullHDRE(_) => QualityType.FullHD
+      case _ => QualityType.Other
     }
 
     hf quality(quality) codec(codec)

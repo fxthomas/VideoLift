@@ -5,8 +5,8 @@ db.user=videolift
 db.password=vltestpw
 
 # Library URIs
-library.path=/home/fx/Videos/
-library.url=file:///home/fx/Videos/
+library.path=/Users/fx/Downloads/
+library.url=file:///Users/fx/Downloads/
 
 # Run mode
 run.mode=production

@@ -15,7 +15,7 @@ class HypeEpisode extends LongKeyedMapper[HypeEpisode] with OneToMany[Long, Hype
   object id extends MappedLongIndex (this)
   object title extends MappedString (this, 256)
   object files extends MappedOneToMany (HypeFile, HypeFile.episode, OrderBy(HypeFile.quality, Ascending))
-  object show extends LongMappedMapper (this, HypeShow)
+  object show extends MappedLongForeignKey (this, HypeShow)
   object season extends MappedLong (this)
   object episode extends MappedLong (this)
   object description extends MappedText (this)
